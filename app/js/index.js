@@ -2,9 +2,37 @@ import $ from "jquery";
 import EmbarkJS from "Embark/EmbarkJS";
 import Token from "Embark/contracts/Token";
 
+let currentToken;
+
 $(document).ready(function() {
   EmbarkJS.onReady(function(error) {
     if (error) return console.error("Error while connecting to Web3", error);
+
+    $("#deployToken button").click(function() {
+      var supply = $("#deployToken input").val();
+      Token.deploy({
+        arguments: [supply],
+        data: Token.options.data
+      })
+        .send({
+          gas: 500000
+        })
+        .then(function(deployedToken) {
+          currentToken = deployedToken;
+          $("#deployToken .result").append(
+            "Token deployed with address: " + deployedToken.options.address
+          );
+        });
+    });
+
+    $("#useToken button").click(function() {
+      var address = $("#useToken input").val();
+      currentToken = new EmbarkJS.Contract({
+        abi: Token.options.jsonInterface,
+        address: address
+      });
+    });
+
     web3.eth.getAccounts(function(err, accounts) {
       $("#queryBalance input").val(accounts[0]);
     });
